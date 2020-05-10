@@ -647,24 +647,6 @@ int recommend(RecNode *root){
 		while(CheckToMove(root->f,nextBlock[root->lv],r,0,--startx));
 		startx++;
 		while(CheckToMove(root->f,nextBlock[root->lv],r,0,++endx));
-		endx--;int recommend(RecNode *root){
-	int max=0; // 미리 보이는 블럭의 추천 배치까지 고려했을 때 얻을 수 있는 최대 점수
-	int startx,endx,x,y,r;
-	int numCh=0,i,j;
-	
-	recommendX = 0;
-	recommendY = 0;
-	recommendR = 0;
-
-		
-	rptr child;
-	rptr curr;
-	for(r = 0,numCh = 0 ; r < NUM_OF_ROTATE ; r++){
-		startx = 3;
-		endx = 3;
-		while(CheckToMove(root->f,nextBlock[root->lv],r,0,--startx));
-		startx++;
-		while(CheckToMove(root->f,nextBlock[root->lv],r,0,++endx));
 		endx--;
 		for(x = startx ; x <= endx ; x++){
 			y=2;
@@ -682,60 +664,7 @@ int recommend(RecNode *root){
 					child->f[i][j] = root->f[i][j];
 			child->score += AddBlockToField(child->f,nextBlock[root->lv],r,y,x);
 			child->score += DeleteLine(child->f);
-
-
-			root->c[numCh] = child;
-
-			if(child->lv < VISIBLE_BLOCKS)
-				child->score = recommend(child);
-		
-			if(child->score >= max){
-				max = child->score;
-			}
-			
-			numCh++;
-		}
-	}
-	if(root->lv ==0){
-		for(i=0;i < numCh; i++){
-			if(root->c[i]->score == max){
-				recommendX = root->c[i]->rx;
-				recommendY = root->c[i]->ry;
-				recommendR = root->c[i]->rr;
-
-			}
-		}
-	}
-	else{
-		for(i=0; i < numCh ; i++){
-			curr = root->c[i];
-			free(curr);
-
-		}
-
-	}
-	
-	// user code
-
-	return max;
-}
-		for(x = startx ; x <= endx ; x++){
-			y=1;
-			while(CheckToMove(root->f,nextBlock[root->lv],r,++y,x));
-			y--;
-			child = (rptr)malloc(sizeof(RecNode));
-			child->lv = root->lv + 1;
-			child->score = root->score;
-			child->rx = x;
-			child->ry = y;
-			child->rr = r;
-			
-			for(i=0;i<HEIGHT;i++)
-				for(j=0;j<WIDTH;j++)
-					child->f[i][j] = root->f[i][j];
-			child->score += AddBlockToField(child->f,nextBlock[root->lv],r,y,x);
-			child->score += DeleteLine(child->f);
-
+			child->score += y*10;
 
 			root->c[numCh] = child;
 
@@ -772,7 +701,6 @@ int recommend(RecNode *root){
 
 	return max;
 }
-
 int modified_recommend(RecNode *root){
 	int max=0; // 미리 보이는 블럭의 추천 배치까지 고려했을 때 얻을 수 있는 최대 점수
 	int startx,endx,x,y,r;
@@ -855,7 +783,7 @@ void recommendedPlay(){
 	do{
 		if(timed_out==0){
 			
-			ualarm(100000,10000);
+			ualarm(1000,10000);
 			timed_out = 1;
 			DrawField();
 			blockY = recommendY;
