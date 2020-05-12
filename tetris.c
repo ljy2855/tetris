@@ -759,6 +759,9 @@ int modified_recommend(RecNode *root){
 
 			}
 		}
+		for(i=0;i < numCh; i++)
+			curr = root->c[i];
+			free(curr);
 	}
 	else{
 		for(i=0; i < numCh ; i++){
@@ -783,7 +786,8 @@ void recommendedPlay(){
 	do{
 		if(timed_out==0){
 			
-			ualarm(1000,10000);
+			//ualarm(1000,10000);
+			ualarm(1000,100);
 			timed_out = 1;
 			DrawField();
 			blockY = recommendY;
