@@ -686,7 +686,10 @@ int recommend(RecNode *root){
 				recommendR = root->c[i]->rr;
 
 			}
+			curr = root->c[i];
+			free(curr);
 		}
+		
 	}
 	else{
 		for(i=0; i < numCh ; i++){
@@ -759,9 +762,10 @@ int modified_recommend(RecNode *root){
 
 			}
 		}
-		for(i=0;i < numCh; i++)
+		for(i=0;i < numCh; i++){
 			curr = root->c[i];
 			free(curr);
+		}
 	}
 	else{
 		for(i=0; i < numCh ; i++){
