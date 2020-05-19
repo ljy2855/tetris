@@ -282,7 +282,7 @@ int CheckToMove(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int bloc
 }
 void DrawChange(char f[HEIGHT][WIDTH],int command,int currentBlock,int blockRotate, int blockY, int blockX){
 	// user code
-	DrawField(); // 고쳐야되나??
+	DrawField();
 	DrawBlockWithFeatures(blockY,blockX,currentBlock,blockRotate);
 
 
@@ -309,12 +309,14 @@ void BlockDown(int sig){
 		nextBlock[2] = nextBlock[3];
 		nextBlock[3] = rand()%7;
 
+		
+
 		recRoot->lv = 0;
 		recRoot->score = 0;
 		for(i=0;i<HEIGHT;i++)
 			for(j=0;j<WIDTH;j++)
 				recRoot->f[i][j] = field[i][j];
-		recommend(recRoot);
+		modified_recommend(recRoot);
 
 
 		blockRotate = 0;
@@ -334,14 +336,7 @@ void BlockDown(int sig){
 int AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int blockY, int blockX){
 	// user code
 	int i,j,touch=0;
-	for(i=0; i < BLOCK_HEIGHT ; i++){
-		for(j=0 ; j < BLOCK_WIDTH ; j++){
-			if(block[currentBlock][blockRotate][i][j]){
-				if(f[i+blockY+1][j+blockX])
-					touch++;
-			}
-		}
-	}
+	
 	for(i=0; i < BLOCK_HEIGHT ; i++){
 		for(j=0 ; j < BLOCK_WIDTH ; j++){
 			if(block[currentBlock][blockRotate][i][j]){
@@ -365,6 +360,8 @@ int DeleteLine(char f[HEIGHT][WIDTH]){
 		for(j=0; j < WIDTH ; j++){
 			if(f[i][j] == 1)
 				count++;
+			else
+				continue;
 		}
 		if(count == 0)
 			break;
@@ -565,7 +562,6 @@ void newRank(int score){
 	int i,j;
 	nptr new,pre, now;
 
-	
 	clear();
 	move(0,0);
 	printw("your name : ");
@@ -595,6 +591,7 @@ void newRank(int score){
 					new->next = now;
 				}
 				break;
+				
 			}
 			pre = now;
 			if( i != rankData->cnt)
@@ -642,8 +639,8 @@ int recommend(RecNode *root){
 	rptr child;
 	rptr curr;
 	for(r = 0,numCh = 0 ; r < NUM_OF_ROTATE ; r++){
-		startx = 3;
-		endx = 3;
+		startx = 1;
+		endx = 6;
 		while(CheckToMove(root->f,nextBlock[root->lv],r,0,--startx));
 		startx++;
 		while(CheckToMove(root->f,nextBlock[root->lv],r,0,++endx));
@@ -662,9 +659,9 @@ int recommend(RecNode *root){
 			for(i=0;i<HEIGHT;i++)
 				for(j=0;j<WIDTH;j++)
 					child->f[i][j] = root->f[i][j];
-			child->score += AddBlockToField(child->f,nextBlock[root->lv],r,y,x);
+			child->score += RAddBlockToField(child->f,nextBlock[root->lv],r,y,x);
 			child->score += DeleteLine(child->f);
-			child->score += y*10;
+			//child->score += y*10;
 
 			root->c[numCh] = child;
 
@@ -686,15 +683,15 @@ int recommend(RecNode *root){
 				recommendR = root->c[i]->rr;
 
 			}
-			curr = root->c[i];
-			free(curr);
+			//curr = root->c[i];
+			//free(curr);
 		}
 		
 	}
 	else{
 		for(i=0; i < numCh ; i++){
-			curr = root->c[i];
-			free(curr);
+			//curr = root->c[i];
+			//free(curr);
 
 		}
 
@@ -707,16 +704,24 @@ int recommend(RecNode *root){
 int modified_recommend(RecNode *root){
 	int max=0; // 미리 보이는 블럭의 추천 배치까지 고려했을 때 얻을 수 있는 최대 점수
 	int startx,endx,x,y,r;
-	int numCh=0,i,j;
+	int numCh=0,i,j,rot,block;
 	
 	recommendX = 0;
-	recommendY = 0;
+	recommendY = -1;
 	recommendR = 0;
 
 		
 	rptr child;
 	rptr curr;
-	for(r = 0,numCh = 0 ; r < NUM_OF_ROTATE ; r++){
+
+	block = nextBlock[root->lv];
+	if(block == 4)
+		rot = 1;
+	else if(block == 0 || block == 5 || block == 6)
+		rot = 2;
+	else
+		rot = 4;
+	for(r = 0,numCh = 0 ; r < rot ; r++){
 		startx = 3;
 		endx = 3;
 		while(CheckToMove(root->f,nextBlock[root->lv],r,0,--startx));
@@ -737,14 +742,15 @@ int modified_recommend(RecNode *root){
 			for(i=0;i<HEIGHT;i++)
 				for(j=0;j<WIDTH;j++)
 					child->f[i][j] = root->f[i][j];
-			child->score += AddBlockToField(child->f,nextBlock[root->lv],r,y,x);
+			child->score += RAddBlockToField(child->f,nextBlock[root->lv],r,y,x);
 			child->score += DeleteLine(child->f);
+			child->score += y*10;
 
 
 			root->c[numCh] = child;
 
 			if(child->lv < VISIBLE_BLOCKS)
-				child->score = recommend(child);
+				child->score = modified_recommend(child);
 		
 			if(child->score >= max){
 				max = child->score;
@@ -781,23 +787,57 @@ int modified_recommend(RecNode *root){
 	return max;
 }
 
+int RAddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int blockY, int blockX){
+	// user code
+	int i,j,touch=0;
+	for(i=0; i < BLOCK_HEIGHT ; i++){
+		for(j=0 ; j < BLOCK_WIDTH ; j++){
+			if(block[currentBlock][blockRotate][i][j]){
+				if(f[i+blockY+1][j+blockX])
+					touch++;
+			}
+		}
+	}
+	for(i=0; i < BLOCK_HEIGHT ; i++){
+		for(j=0 ; j < BLOCK_WIDTH ; j++){
+			if(block[currentBlock][blockRotate][i][j]){
+				f[i+blockY][j+blockX] = 1;
+				if(blockY + i == 21)
+					touch++;
+			}
+		}
+	}
+	return touch*10;
+	//Block이 추가된 영역의 필드값을 바꾼다.
+}
+
 void recommendedPlay(){
-	int command;
+	int command,start;
 	clear();
 	act.sa_handler = BlockDown;
 	sigaction(SIGALRM,&act,&oact);
 	InitTetris();
+	start = time(NULL);
 	do{
 		if(timed_out==0){
-			
-			//ualarm(1000,10000);
+
 			ualarm(1000,100);
-			timed_out = 1;
-			DrawField();
+		
+			timed_out = 1;			
+			
+			//DrawField();
+			/*
+			if(CheckToMove(field,nextBlock[0],blockRotate,blockY,blockX)==0){
+				gameOver = 1;
+				timed_out = 0;
+			}
+			*/
 			blockY = recommendY;
 			blockX = recommendX;
 			blockRotate = recommendR;
-		
+
+			
+			mvprintw(25,1,"time : %d",time(NULL) - start);
 
 			
 		}

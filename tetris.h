@@ -218,6 +218,7 @@ int ProcessCommand(int command);
  ***********************************************************/
 void BlockDown(int sig);
 
+
 /***********************************************************
  *	입력된 움직임이 가능한지를 판단해주는 함수.
  *	input	: (char[][]) 블럭의 움직임을 확인할 필드
@@ -259,6 +260,9 @@ void DrawField();
  *	return	: none
  ***********************************************************/
 int AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int blockY, int blockX);
+
+int RAddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int blockY, int blockX);
+
 
 /***********************************************************
  *	완전히 채워진 Line을 삭제하고 점수를 매겨준다.
@@ -369,6 +373,8 @@ void newRank(int score);
  *	return	: (int) 추천 블럭 배치를 따를 때 얻어지는 예상 스코어
  ***********************************************************/
 int recommend(RecNode *root);
+
+int modified_recommend(RecNode *root);
 
 /***********************************************************
  *	추천 기능에 따라 블럭을 배치하여 진행하는 게임을 시작한다.
