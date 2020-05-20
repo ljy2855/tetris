@@ -313,12 +313,17 @@ void BlockDown(int sig){
 
 		recRoot->lv = 0;
 		recRoot->score = 0;
+		/*
 		for(i=0;i<HEIGHT;i++)
 			for(j=0;j<WIDTH;j++)
 				recRoot->f[i][j] = field[i][j];
+		*/
+		memcpy(recRoot->f,field,sizeof(char[HEIGHT][WIDTH])); // memcpy 로 속도 향상
 		modified_recommend(recRoot);
-
-
+		//recommend(recRoot);
+		if(recommendY == -1)
+			gameOver = 1;
+		
 		blockRotate = 0;
 		blockY = -1;
 		blockX = WIDTH/2 -2;
@@ -368,8 +373,8 @@ int DeleteLine(char f[HEIGHT][WIDTH]){
 		if(count == WIDTH){
 			line++;
 			for(j=i; j > 0 ; j--){
-				for(k=0; k < WIDTH ; k++)
-					f[j][k] = f[j-1][k];
+				memcpy(f[j],f[j-1],sizeof(char[WIDTH])); // for -> memcpy
+				
 			}
 			i++;
 		}
@@ -661,7 +666,6 @@ int recommend(RecNode *root){
 					child->f[i][j] = root->f[i][j];
 			child->score += RAddBlockToField(child->f,nextBlock[root->lv],r,y,x);
 			child->score += DeleteLine(child->f);
-			//child->score += y*10;
 
 			root->c[numCh] = child;
 
@@ -683,21 +687,9 @@ int recommend(RecNode *root){
 				recommendR = root->c[i]->rr;
 
 			}
-			//curr = root->c[i];
-			//free(curr);
 		}
 		
 	}
-	else{
-		for(i=0; i < numCh ; i++){
-			//curr = root->c[i];
-			//free(curr);
-
-		}
-
-	}
-	
-	// user code
 
 	return max;
 }
@@ -722,32 +714,39 @@ int modified_recommend(RecNode *root){
 	else
 		rot = 4;
 	for(r = 0,numCh = 0 ; r < rot ; r++){
-		startx = 3;
-		endx = 3;
+		startx = 1;
+		endx = 6;
 		while(CheckToMove(root->f,nextBlock[root->lv],r,0,--startx));
 		startx++;
 		while(CheckToMove(root->f,nextBlock[root->lv],r,0,++endx));
 		endx--;
-		for(x = startx ; x <= endx ; x++){
-			y=0;
-			while(CheckToMove(root->f,nextBlock[root->lv],r,++y,x));
-			y--;
+		for(x = startx ; x <= endx ; x++, numCh++){
+
 			child = (rptr)malloc(sizeof(RecNode));
+			root->c[numCh] = child;
+			
+			y=-1;
+			if(CheckToMove(root->f,nextBlock[root->lv],r,y,x) == 0)
+				continue;
+			while(CheckToMove(root->f,nextBlock[root->lv],r,y,x)) y++;
+			y--;
+			
 			child->lv = root->lv + 1;
 			child->score = root->score;
 			child->rx = x;
 			child->ry = y;
 			child->rr = r;
-			
+			/*
 			for(i=0;i<HEIGHT;i++)
 				for(j=0;j<WIDTH;j++)
 					child->f[i][j] = root->f[i][j];
+			*/
+			memcpy(child->f,root->f,sizeof(char[HEIGHT][WIDTH]));
 			child->score += RAddBlockToField(child->f,nextBlock[root->lv],r,y,x);
 			child->score += DeleteLine(child->f);
-			child->score += y*10;
+			child->score += y*10 - child->lv;
 
 
-			root->c[numCh] = child;
 
 			if(child->lv < VISIBLE_BLOCKS)
 				child->score = modified_recommend(child);
@@ -756,9 +755,9 @@ int modified_recommend(RecNode *root){
 				max = child->score;
 			}
 			
-			numCh++;
 		}
 	}
+	
 	if(root->lv ==0){
 		for(i=0;i < numCh; i++){
 			if(root->c[i]->score == max){
